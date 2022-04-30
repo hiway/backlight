@@ -1,0 +1,152 @@
+#!/usr/local/bin/python3.8 -u
+"""
+backlightd
+"""
+import sys
+import time
+import click
+from plumbum import local
+
+cat = local["/bin/cat"]
+chown = local["/usr/sbin/chown"]
+id = local["/usr/bin/id"]
+intel_backlight = local["/usr/local/bin/intel_backlight"]
+logger = local["/usr/bin/logger"]
+mkdir = local["/bin/mkdir"]
+sysrc = local["/usr/sbin/sysrc"]
+
+
+def config_set(key, value=None):
+    return sysrc["-nq", f"{key}={value}"]().split("->")[1].strip()
+
+
+def config_get(key):
+    return sysrc["-n", key]().strip()
+
+
+def config_exists(key):
+    try:
+        config_get(key)
+        return True
+    except:
+        return False
+
+
+def backlight_current():
+    stdout = intel_backlight(retcode=None)
+    value = stdout.strip().split("%")[0].split(":")[1].strip()
+    return int(value)
+
+
+def backlight_fade(target, step, delay):
+    curr = backlight_current()
+    if target == curr:
+        return
+    elif target < curr:
+        step = step * -1
+    for value in range(curr, target, step):
+        time.sleep(delay * 0.0001)
+        intel_backlight[value](retcode=None)
+    intel_backlight[target](retcode=None)
+
+
+def parse_event(line):
+    line = line.decode("utf-8")
+    line = line.strip()
+    if line.startswith("!"):
+        line = line[1:]
+        event = {i.split("=")[0]: i.split("=")[1] for i in line.split(" ")}
+        return event
+    else:
+        return None
+
+
+def next_backlight_level(curr, direction):
+    levels = sorted([int(l) for l in config_get("backlightd_levels").split(" ")])
+    if direction > 0:  # Increment
+        lvls = list(filter(lambda x: x > curr, levels))
+        return lvls[0]
+    elif direction < 0:  # Decrement
+        lvls = list(filter(lambda x: x < curr, reversed(levels)))
+        return lvls[0]
+    return curr
+
+
+def handle_event(event):
+    if not ("notify" in event and "subsystem" in event):
+        return
+    if event["notify"] == "0x10" and event["subsystem"] == "IBM":
+        # increase brightness
+        curr = backlight_current()
+        if curr == 100:
+            return
+        backlight_fade(target=next_backlight_level(curr, 1), step=1, delay=10)
+    elif event["notify"] == "0x11" and event["subsystem"] == "IBM":
+        # decrease brightness
+        curr = backlight_current()
+        if curr == 0:
+            return
+        backlight_fade(target=next_backlight_level(curr, -1), step=1, delay=10)
+    elif event["notify"] == "0x00" and event["subsystem"] == "Lid":
+        # Lid closed
+        backlight_fade(target=0, step=1, delay=10)
+    elif event["notify"] == "0x01" and event["subsystem"] == "Lid":
+        # Lid open
+        time.sleep(0.5)
+        backlight_fade(target=50, step=1, delay=60)
+
+
+@click.group()
+def main():
+    pass
+
+
+@main.command("set")
+@click.argument("target", type=int)
+def main_set(target):
+    curr = backlight_current()
+    click.echo(f"set backlight from {curr} to {target}")
+    intel_backlight[target](retcode=None)
+    sys.exit(0)
+
+
+@main.command("fade")
+@click.argument("target", type=int)
+@click.argument("step", type=int, default=2)
+@click.argument("delay", type=int, default=10)
+def main_fade(target, step, delay):
+    curr = backlight_current()
+    click.echo(f"fade backlight from {curr} to {target}")
+    backlight_fade(target, step, delay)
+
+
+@main.command("init")
+@click.option("--levels", default="0 1 4 10 30 50 70 100", prompt=True)
+def main_init(levels):
+    config_set("backlightd_levels", levels)
+
+
+@main.command("run")
+def main_run():
+    proc = cat.popen("/var/run/devd.seqpacket.pipe")
+
+    while True:
+        try:
+            line = proc.stdout.readline()
+            if not line:
+                break
+            event = parse_event(line)
+            if event is None:
+                continue
+            handle_event(event)
+        except Exception:
+            logger["-t", "backlightd", line]()
+            continue
+        except KeyboardInterrupt:
+            print()
+            break
+
+    proc.wait()
+
+
+main()
