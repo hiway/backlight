@@ -14,6 +14,7 @@ fades backlight between presets.
 EOD
 deps: {
     intel-backlight: {origin: graphics/intel-backlight, version: 20200418},
+    py38-click: {origin: devel/py-click, version: 8.0.3},
     py38-plumbum: {origin: sysutils/py-plumbum, version: 1.7.2},
     python38: {origin: lang/python38, version: 3.8.13},
 }
