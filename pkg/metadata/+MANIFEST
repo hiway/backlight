@@ -1,7 +1,7 @@
 name: "backlightd"
 version: "VERSION"
 origin: "graphics/backlightd"
-comment: " Nicer display backlight (screen brightness) controls for FreeBSD"
+comment: "Nicer display backlight (screen brightness) controls for FreeBSD"
 www: https://github.com/hiway/backlightd
 maintainer: harshad@sharma.io
 prefix: /usr/local
