@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# FreeBSD Packages
+pkg/archive/
+
+# Editor
+.vscode/
