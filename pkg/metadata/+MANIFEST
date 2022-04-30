@@ -1,5 +1,5 @@
 name: "backlightd"
-version: "0.1.0"
+version: "VERSION"
 origin: "graphics/backlightd"
 comment: " Nicer display backlight (screen brightness) controls for FreeBSD"
 www: https://github.com/hiway/backlightd
