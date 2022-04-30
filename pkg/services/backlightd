@@ -1,0 +1,29 @@
+#!/bin/sh
+# shellcheck disable=SC1091,2034
+
+# PROVIDE: backlightd
+# REQUIRE: LOGIN
+#
+# Add the following line to /etc/rc.conf to enable backlightd:
+#
+# backlightd_enable="YES"
+#
+
+backlightd_enable=${backlightd_enable:-"NO"}
+. /etc/rc.subr
+
+name=backlightd
+rcvar=backlightd_enable
+
+backlightd_command="/usr/local/bin/backlightd run"
+pidfile="/var/run/${name}.pid"
+command="/usr/sbin/daemon"
+command_args="-P ${pidfile} -r -f ${backlightd_command}"
+
+extra_commands="init" 
+init_cmd="/usr/local/bin/backlightd init"
+
+load_rc_config ${name}
+: ${backlightd_enable:=no}
+
+run_rc_command "$1"

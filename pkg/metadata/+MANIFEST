@@ -1,0 +1,19 @@
+name: "backlightd"
+version: "0.1.0"
+origin: "graphics/backlightd"
+comment: " Nicer display backlight (screen brightness) controls for FreeBSD"
+www: https://github.com/hiway/backlightd
+maintainer: harshad@sharma.io
+prefix: /usr/local
+desc: <<EOD
+Nicer display backlight (screen brightness) controls for FreeBSD
+
+Depends on intel_backlight, 
+monitors devd events, 
+fades backlight between presets.
+EOD
+deps: {
+    intel-backlight: {origin: graphics/intel-backlight, version: 20200418},
+    py38-plumbum: {origin: sysutils/py-plumbum, version: 1.7.2},
+    python38: {origin: lang/python38, version: 3.8.13},
+}
