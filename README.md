@@ -4,7 +4,9 @@ Nicer display backlight (screen brightness) controls for FreeBSD
 
 ## Install
 
-Download latest release
+Download latest release:
+
+https://github.com/hiway/backlightd/releases/tag/v0.1.0
 
 Install
 
