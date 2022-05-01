@@ -137,7 +137,7 @@ def main_run():
                 break
             event = parse_event(line)
             if event is None:
-                continue
+                break
             handle_event(event)
         except Exception:
             logger["-t", "backlightd", line]()
