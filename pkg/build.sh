@@ -2,7 +2,7 @@
 
 init_variables() {
   APP_NAME="backlightd"
-  APP_VERSION="0.1.0"
+  APP_VERSION="0.2.0"
 
   SOURCE_DIR="$( pwd )"
   STAGE_DIR="$( mktemp -d -t "${APP_NAME}-${APP_VERSION}" )"
