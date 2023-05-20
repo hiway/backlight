@@ -129,7 +129,7 @@ def main_init(levels):
 @main.command("run")
 def main_run():
     proc = cat.popen("/var/run/devd.seqpacket.pipe")
-
+    line = None
     while True:
         try:
             line = proc.stdout.readline()
